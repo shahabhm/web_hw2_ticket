@@ -1,12 +1,15 @@
 import {body, validationResult} from 'express-validator';
 
 const IATA_LEN = 3;
-export const flight_search_validation_rules = () => {
+export const available_offers_search_validation_rules = () => {
     return [
         body('departure').isDate(),
         body('origin').isLength({min: IATA_LEN, max: IATA_LEN}),
         body('dest').isLength({min: IATA_LEN, max: IATA_LEN}),
-    ]
+        body('y_class_free_capacity').isInt({gt: -1}),
+        body('j_class_free_capacity').isInt({gt: -1}),
+        body('f_class_free_capacity').isInt({gt: -1}),
+    ];
 }
 
 export const validate = (req, res, next) => {

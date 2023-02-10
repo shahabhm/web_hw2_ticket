@@ -1,7 +1,7 @@
 import * as handlers from '/home/shahab/WebstormProjects/web/handlers.js';
 import express from "express";
 import bodyParser from 'body-parser';
-import {flight_search_validation_rules, validate} from './validators.js';
+import {available_offers_search_validation_rules, validate} from './validators.js';
 const app = express();
 const port = 3000
 
@@ -52,10 +52,10 @@ app.get('/runs', handlers.test_runs);
 
 app.get('/cities', handlers.get_cities);
 
-app.post('/search_flight',
-    flight_search_validation_rules(),
+app.post('/available_offers',
+    available_offers_search_validation_rules(),
     validate,
-    handlers.search_flight);
+    handlers.available_offers);
 
 app.post('/tickets', handlers.tickets);
 

@@ -1,11 +1,9 @@
 import {
     Airport,
     City,
-    find_flight,
-    Flight,
     test_database,
     find_tickets,
-    find_receipts_by_user, create_receipt, create_ticket, find_receipts_by_id
+    find_receipts_by_user, create_receipt, create_ticket, find_receipts_by_id, find_available_offers
 } from '/home/shahab/WebstormProjects/web/model.js';
 import {validationResult} from "express-validator";
 
@@ -39,12 +37,13 @@ export const get_airports = function (req, res) {
     )
 }
 
-export const search_flight = function (req, res) {
-    let flight_serach_results = find_flight(req.body);
-    flight_serach_results.then((value) => {
+export const available_offers = function (req, res) {
+    let available_offers_results = find_available_offers (req.body);
+    available_offers_results.then((value) => {
             res.send(value);
         },
         (error) => {
+            console.log(error);
             res.send(error);
         })
 }

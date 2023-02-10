@@ -40,22 +40,31 @@ export const Airport = sequelize.define('airport', {
     dbOpts('airport')
 );
 
-export const Flight = sequelize.define('flight', {
-        flight_serial: {
-            type: DataTypes.BIGINT,
-            primaryKey: true,
-        },
-        flight_id: DataTypes.STRING,
+export const AvailableOffer = sequelize.define('available_offers', {
+        // flight_serial: {
+        //     type: DataTypes.BIGINT,
+        //     primaryKey: true,
+        // },
+        flight_id: {type: DataTypes.STRING, primaryKey: true},
         origin: DataTypes.STRING,
         destination: DataTypes.STRING,
-        aircraft: DataTypes.STRING,
-        departure_utc: DataTypes.TIME,
-        duration: DataTypes.STRING, // ?
+        departure_local_time: DataTypes.TIME,
+        arrival_local_time: DataTypes.TIME,
+        duration: DataTypes.STRING,
         y_price: DataTypes.INTEGER,
         j_price: DataTypes.INTEGER,
         f_price: DataTypes.INTEGER,
+        y_class_free_capacity: DataTypes.INTEGER,
+        j_class_free_capacity: DataTypes.INTEGER,
+        f_class_free_capacity: DataTypes.INTEGER,
+        equipment: DataTypes.STRING,
     },
-    dbOpts('flight')
+    {
+        tableName: 'available_offers',
+        createdAt: false,
+        updatedAt: false,
+        indexes: []
+    }
 );
 
 
@@ -83,19 +92,22 @@ export const Receipt = sequelize.define('receipt', {
     price: DataTypes.INTEGER,
 }, dbOpts('receipt'));
 
-export const find_flight = function (search_options) {
+export const find_available_offers = function (search_options) {
 
     let dateA = search_options.departure + " 00:00:00";
     let dateB = search_options.departure + " 23:59:59";
 
-    return Flight.findAll({
+    return AvailableOffer.findAll({
         where: {
             [Op.and]: {
-                departure_utc: {
+                departure_local_time : {
                     [Op.between]: [dateA, dateB]
                 },
                 origin: search_options.origin,
-                destination: search_options.dest
+                destination: search_options.dest,
+                y_class_free_capacity: {[Op.gte] : search_options.y_class_free_capacity},
+                j_class_free_capacity: {[Op.gte] : search_options.j_class_free_capacity},
+                f_class_free_capacity: {[Op.gte] : search_options.f_class_free_capacity},
             },
         }
     })
