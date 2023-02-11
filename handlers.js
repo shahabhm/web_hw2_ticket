@@ -146,7 +146,7 @@ const bank_enum = function (state) {
         return "Expire";
     } else if (state == 4) {
         return "No Credit";
-    } else if (state == 5) {
+    } else {
         return "Cancel";
     }
 }
