@@ -1,4 +1,4 @@
-import {DataTypes, Sequelize, Op} from 'sequelize';
+import {DataTypes, Op, Sequelize} from 'sequelize';
 
 const sequelize = new Sequelize('postgres://postgres:postgres@localhost:5432/flight') // Example for postgres
 
@@ -41,10 +41,6 @@ export const Airport = sequelize.define('airport', {
 );
 
 export const AvailableOffer = sequelize.define('available_offers', {
-        // flight_serial: {
-        //     type: DataTypes.BIGINT,
-        //     primaryKey: true,
-        // },
         flight_id: {type: DataTypes.STRING, primaryKey: true},
         origin: DataTypes.STRING,
         destination: DataTypes.STRING,
@@ -69,28 +65,44 @@ export const AvailableOffer = sequelize.define('available_offers', {
 
 
 export const Ticket = sequelize.define('ticket', {
-    ticket_id: {
-        type: DataTypes.STRING,
-        primaryKey: true,
-        autoIncrement: true,
+    corresponding_user_id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true
     },
-    user_id: DataTypes.INTEGER,
-    flight_serial: DataTypes.INTEGER,
-    passenger_name: DataTypes.STRING,
-    n_id: DataTypes.STRING,
-    receipt_id: DataTypes.INTEGER,
-}, dbOpts('ticket'));
-
-export const Receipt = sequelize.define('receipt', {
+    title: DataTypes.STRING,
+    first_name: DataTypes.STRING,
+    last_name: DataTypes.STRING,
+    flight_serial: DataTypes.STRING,
+    offer_price: DataTypes.INTEGER,
+    offer_class: DataTypes.INTEGER,
     receipt_id: {
         type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
+        primaryKey: true
     },
-    user_id: DataTypes.INTEGER,
-    state: DataTypes.STRING,
-    price: DataTypes.INTEGER,
-}, dbOpts('receipt'));
+}, dbOpts('ticket'));
+
+export const Purchase = sequelize.define('purchase', {
+    corresponding_user_id: DataTypes.INTEGER,
+    title: DataTypes.STRING,
+    first_name: DataTypes.STRING,
+    last_name: DataTypes.STRING,
+    flight_id: DataTypes.INTEGER,
+    offer_price: DataTypes.INTEGER,
+    offer_class: DataTypes.INTEGER,
+}, dbOpts('purchase'));
+
+export const Flight = sequelize.define('flight', {
+    flight_serial: {type: DataTypes.INTEGER, primaryKey: true},
+    flight_id: DataTypes.STRING,
+    origin: DataTypes.STRING,
+    destination: DataTypes.STRING,
+    aircraft: DataTypes.STRING,
+    departure_utc: DataTypes.TIME,
+    duration: DataTypes.STRING,
+    y_price: DataTypes.INTEGER,
+    j_price: DataTypes.INTEGER,
+    f_price: DataTypes.INTEGER,
+}, dbOpts('flight'));
 
 export const find_available_offers = function (search_options) {
 
@@ -100,14 +112,14 @@ export const find_available_offers = function (search_options) {
     return AvailableOffer.findAll({
         where: {
             [Op.and]: {
-                departure_local_time : {
+                departure_local_time: {
                     [Op.between]: [dateA, dateB]
                 },
                 origin: search_options.origin,
                 destination: search_options.dest,
-                y_class_free_capacity: {[Op.gte] : search_options.y_class_free_capacity},
-                j_class_free_capacity: {[Op.gte] : search_options.j_class_free_capacity},
-                f_class_free_capacity: {[Op.gte] : search_options.f_class_free_capacity},
+                y_class_free_capacity: {[Op.gte]: search_options.y_class_free_capacity},
+                j_class_free_capacity: {[Op.gte]: search_options.j_class_free_capacity},
+                f_class_free_capacity: {[Op.gte]: search_options.f_class_free_capacity},
             },
         }
     })
@@ -126,37 +138,42 @@ export const find_tickets = function (search_options) {
 
 }
 
-export const find_receipts_by_user = function (search_options){
-    return Receipt.findAll({
-        where:{
-            user_id: search_options.user_id
-        }
+export const create_ticket = function (ticket) {
+    return Ticket.create({
+        corresponding_user_id: ticket.corresponding_user_id,
+        title: ticket.title,
+        first_name: ticket.first_name,
+        last_name: ticket.last_name,
+        flight_serial: ticket.flight_serial,
+        offer_price: ticket.offer_price,
+        offer_class: ticket.offer_class,
+        receipt_id: ticket.receipt_id,
     })
 }
 
-export const find_receipts_by_id = function (search_options){
-    return Receipt.findAll({
-        where:{
-            receipt_id: search_options.receipt_id
-        }
+export const create_purchase = function (purchase) {
+    return Purchase.create({
+        corresponding_user_id: purchase.corresponding_user_id,
+        title: purchase.title,
+        first_name: purchase.first_name,
+        last_name: purchase.last_name,
+        flight_serial: purchase.flight_serial,
+        offer_price: purchase.offer_price,
+        offer_class: purchase.offer_class
     })
 }
 
-export const create_receipt = function (receipt){
-     return Receipt.create({
-        user_id: receipt.user_id,
-        state: "created",
-        price: receipt.price,
+export const receipt_serial_generate = function () {
+    return sequelize.query("SELECT nextval('reserve_counter')", {
+        type: sequelize.Sequelize.QueryTypes.SELECT
     });
 }
 
-export const create_ticket = function (ticket) {
-    return Ticket.create({
-        user_id: ticket.user_id,
-        flight_serial: ticket.flight_serial,
-        passenger_name: ticket.passenger_name,
-        n_id: ticket.n_id,
-        receipt_id: ticket.receipt_id,
+export const find_flight_by_id = function (id) {
+    return Flight.findAll({
+        where: {
+            flight_id: id
+        }
     })
 }
 
