@@ -75,5 +75,7 @@ app.post('/available_offers', available_offers_search_validation_rules(), valida
 
 app.post('/reserve_ticket', reserve_validation_rules(), validate, handlers.reserve_ticket);
 
+app.get('/transaction_result/*', handlers.transaction_result);
+
 // app.post('/reserve_confirmation', reserve_confirmation_validation_rules(), validate, handlers.reserve_confirmation);
 

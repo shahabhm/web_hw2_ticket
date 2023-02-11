@@ -8,6 +8,7 @@ import {
     receipt_serial_generate, find_flight_by_id
 } from '/home/shahab/WebstormProjects/web/model.js';
 import {validationResult} from "express-validator";
+import axios from "axios";
 
 const BANK_URL = 'localhost:8000'
 
@@ -59,17 +60,6 @@ export const test_runs = function (req, res) {
     })
 }
 
-export const tickets = function (req, res) {
-    let ticket_search_results = find_tickets({user_id: parseInt(req.USER)});
-    ticket_search_results.then((value) => {
-        res.send(value);
-    }, (error) => {
-        console.error(error);
-        res.send("there was a problem finding your tickets...");
-    })
-}
-
-
 const ticket_creator = function (req) {
     for (let i = 0; i < req.passengers.length; i++) {
         create_ticket({
@@ -99,8 +89,11 @@ export const reserve_ticket = async function (req, res) {
     req.body.receipt_id = parseInt(receipt_id[0].nextval);
     req = await calculate_total_price(req.body);
     req.USER = USER;
-    ticket_creator(req)
-    res.send("done");
+    ticket_creator(req);
+    let create_transaction_result = await create_bank_transaction(req);
+    create_transaction_result.bank_address = 'http://'+BANK_URL+'/payment/'+create_transaction_result.id;
+    // console.log(create_transaction_result);
+    res.send(create_transaction_result);
 }
 
 const calculate_total_price = async function (cart) {
@@ -128,22 +121,20 @@ const calculate_total_price = async function (cart) {
     return cart;
 }
 
-const create_bank_transaction = (req) => {
-    console.log(req);
-    fetch(BANK_URL + 'transaction', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            'amount': 2233,
-            receipt_id: req.receipt_id,
-            callback: 'localhost:3000/transaction_result/id:' + req.receipt_id
-        })
-    })
-        .then(response => response.json())
-        .then(response => console.log(JSON.stringify(response)))
+const create_bank_transaction = async (req) => {
+
+    const data = {'amount': req.total_price,
+        'receipt_id': req.receipt_id,
+        'callback': 'http://localhost:3000/transaction_result/id:' + req.receipt_id};
+
+    let post_result = await axios.post('http://' + BANK_URL + '/transaction/', data);
+    return post_result.data;
+    //     then((res) => {
+    //         console.log(`Status: ${res.status}`);
+    //         console.log('Body: ', res.data);
+    //     }).catch((err) => {
+    //     console.error(err);
+    // });
 }
 
 export const pay_reserve = (req, res) => {
@@ -158,24 +149,11 @@ export const pay_reserve = (req, res) => {
     );
 }
 
-export const reserve_confirmation = (req, res) => {
-    let receipt_id = req.query['receipt_id'];
-    let find_receipt_by_id_result = find_receipts_by_id(req.query);
-    find_receipt_by_id_result.then(
-        (value) => {
-            // todo: this != could be dirty...
-            if (value.length === 0 || value[0].user_id !== req.USER) {
-                res.status(422).json({
-                    errors: {
-                        "receipt_id": "invalid receipt_id!",
-                    },
-                })
-            } else {
-                res.send(value[0]);
-            }
-        },
-        (error) => {
-            console.log(error);
-        }
-    )
+export const transaction_result = function (req, res) {
+    let req_url = req.url;
+    let transaction_id = req_url.split("/")[2].split(":")[1];
+    let state = req_url.split("/")[3];
+    if (state === "1"){
+        successful_tickets(transaction_id);
+    }
 }

@@ -129,10 +129,10 @@ export const find_available_offers = function (search_options) {
 /*
     we probably want to find flight by its user
  */
-export const find_tickets = function (search_options) {
+export const find_tickets = function (receipt_id) {
     return Ticket.findAll({
         where: {
-            user_id: search_options.user_id
+            receipt_id: receipt_id
         }
     });
 
@@ -175,6 +175,15 @@ export const find_flight_by_id = function (id) {
             flight_id: id
         }
     })
+}
+
+export const successful_tickets = async function (receipt_id){
+    let find_tickets_result = find_tickets(receipt_id);
+    for (let i = 0; i < (await find_tickets_result).length; i ++){
+        Purchase.create({
+            // todo
+        })
+    }
 }
 
 export const test_database = async function () {
