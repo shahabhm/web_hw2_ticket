@@ -36,4 +36,4 @@ COPY airport(country_name, city_name, airport_name, iata_code)
 COPY flight(flight_serial,flight_id,origin,destination,aircraft,departure_utc,duration,y_price,j_price,f_price)
     FROM '/home/shahab/WebstormProjects/web/SQL/flight.csv'
     DELIMITER ','
-    CSV HEADER;
+    CSV ;

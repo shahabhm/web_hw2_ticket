@@ -4,89 +4,72 @@ const sequelize = new Sequelize('postgres://postgres:postgres@localhost:5432/fli
 
 const dbOpts = function (db_name) {
     return {
-        tableName: db_name,
-        createdAt: false,
-        updatedAt: false,
+        tableName: db_name, createdAt: false, updatedAt: false,
     }
 };
 
 export const City = sequelize.define('city', {
     country_name: {
-        type: DataTypes.STRING,
-        primaryKey: true
-    },
-    city_name: {
-        type: DataTypes.STRING,
-        primaryKey: true
-    },
-    timezone_name: DataTypes.STRING
+        type: DataTypes.STRING, primaryKey: true
+    }, city_name: {
+        type: DataTypes.STRING, primaryKey: true
+    }, timezone_name: DataTypes.STRING
 }, dbOpts('city'));
 
 export const Airport = sequelize.define('airport', {
-        country_name: {
-            type: DataTypes.STRING,
-        },
-        city_name: {
-            type: DataTypes.STRING,
-        },
-        airport_name: {
-            type: DataTypes.STRING,
-        },
-        iata_code: {
-            type: DataTypes.STRING,
-            primaryKey: true,
-        },
+    country_name: {
+        type: DataTypes.STRING,
+    }, city_name: {
+        type: DataTypes.STRING,
+    }, airport_name: {
+        type: DataTypes.STRING,
+    }, iata_code: {
+        type: DataTypes.STRING, primaryKey: true,
     },
-    dbOpts('airport')
-);
+}, dbOpts('airport'));
 
 export const AvailableOffer = sequelize.define('available_offers', {
-        flight_id: {type: DataTypes.STRING, primaryKey: true},
-        origin: DataTypes.STRING,
-        destination: DataTypes.STRING,
-        departure_local_time: DataTypes.TIME,
-        arrival_local_time: DataTypes.TIME,
-        duration: DataTypes.STRING,
-        y_price: DataTypes.INTEGER,
-        j_price: DataTypes.INTEGER,
-        f_price: DataTypes.INTEGER,
-        y_class_free_capacity: DataTypes.INTEGER,
-        j_class_free_capacity: DataTypes.INTEGER,
-        f_class_free_capacity: DataTypes.INTEGER,
-        equipment: DataTypes.STRING,
-    },
-    {
-        tableName: 'available_offers',
-        createdAt: false,
-        updatedAt: false,
-        indexes: []
-    }
-);
+    flight_id: {type: DataTypes.STRING, primaryKey: true},
+    origin: DataTypes.STRING,
+    destination: DataTypes.STRING,
+    departure_local_time: DataTypes.TIME,
+    arrival_local_time: DataTypes.TIME,
+    duration: DataTypes.STRING,
+    y_price: DataTypes.INTEGER,
+    j_price: DataTypes.INTEGER,
+    f_price: DataTypes.INTEGER,
+    y_class_free_capacity: DataTypes.INTEGER,
+    j_class_free_capacity: DataTypes.INTEGER,
+    f_class_free_capacity: DataTypes.INTEGER,
+    equipment: DataTypes.STRING,
+}, {
+    tableName: 'available_offers', createdAt: false, updatedAt: false, indexes: []
+});
 
 
 export const Ticket = sequelize.define('ticket', {
     corresponding_user_id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true
+        type: DataTypes.INTEGER, primaryKey: true
     },
     title: DataTypes.STRING,
     first_name: DataTypes.STRING,
     last_name: DataTypes.STRING,
-    flight_serial: DataTypes.STRING,
+    flight_serial: DataTypes.INTEGER,
     offer_price: DataTypes.INTEGER,
     offer_class: DataTypes.INTEGER,
     receipt_id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true
+        type: DataTypes.INTEGER, primaryKey: true
     },
 }, dbOpts('ticket'));
 
 export const Purchase = sequelize.define('purchase', {
-    corresponding_user_id: DataTypes.INTEGER,
+    corresponding_user_id: {
+        type: DataTypes.INTEGER, primaryKey: true
+    },
     title: DataTypes.STRING,
     first_name: DataTypes.STRING,
     last_name: DataTypes.STRING,
-    flight_id: DataTypes.INTEGER,
+    flight_serial: DataTypes.INTEGER,
     offer_price: DataTypes.INTEGER,
     offer_class: DataTypes.INTEGER,
 }, dbOpts('purchase'));
@@ -151,15 +134,15 @@ export const create_ticket = function (ticket) {
     })
 }
 
-export const create_purchase = function (purchase) {
+export const create_purchase_from_ticket = function (ticket) {
     return Purchase.create({
-        corresponding_user_id: purchase.corresponding_user_id,
-        title: purchase.title,
-        first_name: purchase.first_name,
-        last_name: purchase.last_name,
-        flight_serial: purchase.flight_serial,
-        offer_price: purchase.offer_price,
-        offer_class: purchase.offer_class
+        corresponding_user_id: ticket.corresponding_user_id,
+        title: ticket.title,
+        first_name: ticket.first_name,
+        last_name: ticket.last_name,
+        flight_serial: ticket.flight_serial,
+        offer_price: ticket.offer_price,
+        offer_class: ticket.offer_class
     })
 }
 
@@ -177,13 +160,22 @@ export const find_flight_by_id = function (id) {
     })
 }
 
-export const successful_tickets = async function (receipt_id){
-    let find_tickets_result = find_tickets(receipt_id);
-    for (let i = 0; i < (await find_tickets_result).length; i ++){
-        Purchase.create({
-            // todo
-        })
+export const successful_tickets = async function (receipt_id) {
+    let find_tickets_result = await find_tickets(receipt_id);
+    for (let i = 0; i < find_tickets_result.length; i++) {
+        let x = find_tickets_result[i];
+        let ticket = x.dataValues;
+        await create_purchase_from_ticket(ticket);
     }
+}
+
+export const flight_id_to_serial = async function (flight_id) {
+    let find_flights = await Flight.findAll({
+        where: {
+            flight_id: flight_id
+        }
+    });
+    return find_flights[0].dataValues.flight_serial;
 }
 
 export const test_database = async function () {
