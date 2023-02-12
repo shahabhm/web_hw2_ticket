@@ -17,6 +17,24 @@ export const reserve_validation_rules = () => {
     })]
 }
 
+export const sign_up_validation_rules = () => {
+    return[
+        body('firstName').isString().isLength({min: 1, max: 50}),
+        body('lastName').isString().isLength({min: 1, max: 50}),
+        body('email').isEmail(),
+        body('gender').custom((value) => {
+        return value === "F" || value === "M";}),
+        body('password').isString().isLength({min:4})
+    ];
+}
+
+export const sign_in_validation_rules = () => {
+    return[
+        body('email').isEmail(),
+        body('password').isString().isLength({min: 4})
+    ];
+}
+
 export const validate = (req, res, next) => {
     const errors = validationResult(req)
     if (errors.isEmpty()) {

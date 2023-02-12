@@ -2,9 +2,13 @@ import * as handlers from '/home/shahab/WebstormProjects/web/handlers.js';
 import express from "express";
 import bodyParser from 'body-parser';
 import {
-    available_offers_search_validation_rules, reserve_validation_rules, validate
+    available_offers_search_validation_rules,
+    reserve_validation_rules,
+    sign_in_validation_rules,
+    sign_up_validation_rules,
+    validate
 } from './validators.js';
-
+import {sign_in, sign_up, user, logout} from './auth';
 const app = express();
 const port = 3000
 
@@ -16,20 +20,10 @@ app.listen(port, () => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-const ignore_auth = ['/available_offers'];
+const ignore_auth = ['/available_offers', '/sign_up', '/sign_in'];
 
 const get_user_from_auth = function (token) {
-    console.warn("this part is not implemented yet...");
-    /*
-    get user here...
-     */
-    if (token === "a") {
-        return 1;
-    } else if (token === "b") {
-        return 2;
-    } else {
-        return -1;
-    }
+    user()
 }
 const check_user = function (req, res, next) {
     if (ignore_auth.includes(req.url)) {
@@ -73,6 +67,12 @@ app.post('/reserve_ticket', reserve_validation_rules(), validate, handlers.reser
 
 // client is redirected here when bank payment is done
 app.get('/transaction_result/*', handlers.transaction_result);
+
+app.post('/sign_up', sign_up_validation_rules(), validate, sign_up);
+
+app.post('/sign_in', sign_in_validation_rules(), validate, sign_in);
+
+app.post('logout', logout);
 
 // app.post('/reserve_confirmation', reserve_confirmation_validation_rules(), validate, handlers.reserve_confirmation);
 
