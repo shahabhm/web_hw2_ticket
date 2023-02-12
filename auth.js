@@ -1,6 +1,7 @@
 import {validationResult} from "express-validator";
+import axios from "axios";
 
-const AUTH_URL = 'localhost:9000'
+const AUTH_URL = 'localhost:9000/'
 
 const validation = function (req, res) {
     const errors = validationResult(req);
@@ -15,13 +16,14 @@ const server_error = function (error, res) {
 }
 
 // sends a request to auth service and returns its answer
-const proxy = async function (req) {
-
+const proxy = async function (method, req) {
+    let post_result = await axios.post('http://' + AUTH_URL + method, req);
+    return post_result.data;
 }
 
 export const sign_up = async function (req, res) {
     try{
-        let sign_up_result = await proxy(req);
+        let sign_up_result = await proxy('signUp/', req.body);
         res.send(sign_up_result);
     }catch (e) {
         server_error(e, res);
@@ -30,7 +32,7 @@ export const sign_up = async function (req, res) {
 
 export const sign_in = async function (req, res) {
     try{
-        let sign_in_result = await proxy(req);
+        let sign_in_result = await proxy('signIn/', req.body);
         res.send(sign_in_result);
     }catch (e){
         server_error(e, res);

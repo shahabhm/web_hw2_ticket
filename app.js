@@ -8,7 +8,7 @@ import {
     sign_up_validation_rules,
     validate
 } from './validators.js';
-import {sign_in, sign_up, user, logout} from './auth';
+import {sign_in, sign_up, user, logout} from '/home/shahab/WebstormProjects/web/auth.js';
 const app = express();
 const port = 3000
 
@@ -73,6 +73,4 @@ app.post('/sign_up', sign_up_validation_rules(), validate, sign_up);
 app.post('/sign_in', sign_in_validation_rules(), validate, sign_in);
 
 app.post('logout', logout);
-
-// app.post('/reserve_confirmation', reserve_confirmation_validation_rules(), validate, handlers.reserve_confirmation);
 
