@@ -16,15 +16,19 @@ const server_error = function (error, res) {
 };
 
 // sends a request to auth service and returns its answer
-const proxy = async function (method, req) {
-  let post_result = await axios.post("http://" + AUTH_URL + method, req);
+const proxy = async function (method, req, config = {}) {
+  let post_result = await axios.post(
+    "http://" + AUTH_URL + method,
+    req,
+    config
+  );
   console.log(post_result.data);
   return post_result.data;
 };
 
 export const sign_up = async function (req, res) {
   try {
-    let sign_up_result = await proxy("signUp/", req.body);
+    let sign_up_result = await proxy("signUp", req.body);
     res.send(sign_up_result);
   } catch (e) {
     server_error(e, res);
@@ -56,8 +60,11 @@ export const user = async function (token) {
 
 export const logout = function (req, res) {
   try {
-    console.log(req);
-    let logout_result = proxy("logOut", req);
+    let logout_result = proxy(
+      "logOut",
+      {},
+      { headers: { Token: req.headers["token"] } }
+    );
     res.send(logout_result);
   } catch (error) {
     server_error(error, res);
