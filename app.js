@@ -21,8 +21,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const ignore_auth = ["/available_offers", "/sign_up", "/sign_in"];
 
-const get_user_from_auth = function (token) {
-  user();
+const get_user_from_auth = async function (token) {
+    let user_result = await user();
+    if (user_result.status !== 200){
+        return -1;
+    }
+    return parseInt(user_result.body.userId);
 };
 const check_user = function (req, res, next) {
   if (ignore_auth.includes(req.url)) {
